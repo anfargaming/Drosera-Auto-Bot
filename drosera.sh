@@ -40,20 +40,22 @@ done
 
 # === 2. Install Dependencies ===
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils -y
+sudo apt install curl unzip ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils -y
 
 # === 3. Install Drosera CLI ===
 curl -L https://app.drosera.io/install | bash
+export PATH="$HOME/.cargo/bin:$PATH"
 source ~/.bashrc
-droseraup
 
 # === 4. Install Foundry ===
 curl -L https://foundry.paradigm.xyz | bash
+export PATH="$HOME/.foundry/bin:$PATH"
 source ~/.bashrc
 foundryup
 
 # === 5. Install Bun ===
 curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"
 source ~/.bashrc
 
 # === 6. Clean Old Directories ===
@@ -63,7 +65,8 @@ rm -rf drosera_operator .drosera my_drosera_trap
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GHEMAIL"
 git config --global user.name "$GHUSER"
-forge init -t drosera-network/trap-foundry-template                                                                                                                              bun install && forge build
+forge init -t drosera-network/trap-foundry-template
+bun install && forge build
 
 # === 8. Deploy Trap ===
 echo "🚀 Deploying trap to Holesky..."
@@ -88,7 +91,8 @@ echo -e 'private_trap = true\nwhitelist = ["'"$OP_ADDR"'"]' >> drosera.toml
 # === 10. Wait & Reapply ===
 echo "⏳ Waiting 10 minutes before re-applying config with whitelist..."
 sleep 600
-DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"                                                                                                                
+DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"
+
 # === 11. Download Operator Binary ===
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
