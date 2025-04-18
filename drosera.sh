@@ -68,7 +68,7 @@ forge init -t drosera-network/trap-foundry-template                             
 # === 8. Deploy Trap ===
 echo "🚀 Deploying trap to Holesky..."
 LOG_FILE="/tmp/drosera_deploy.log"
-DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"
+DROSERA_PRIVATE_KEY=$PK drosera apply --trap "ofc" | tee "$LOG_FILE"
 
 TRAP_ADDR=$(grep -oP '(?<=address: 0x)[a-fA-F0-9]{40}' "$LOG_FILE" | head -n 1)
 TRAP_ADDR="0x$TRAP_ADDR"
