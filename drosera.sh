@@ -49,6 +49,7 @@ source ~/.bashrc
 droseraup
 
 # === 4. Install Foundry ===
+sudo apt install unzip -y
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
 foundryup
