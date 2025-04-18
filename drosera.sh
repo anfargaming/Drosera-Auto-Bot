@@ -40,21 +40,23 @@ done
 
 # === 2. Install Dependencies ===
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils -y
-
+sudo apt install curl ufw iptables unzip build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils -y
 
 # === 3. Install Drosera CLI ===
 curl -L https://app.drosera.io/install | bash
+export PATH="$HOME/.drosera/bin:$PATH"
 source ~/.bashrc
 droseraup
 
 # === 4. Install Foundry ===
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
+export PATH="$HOME/.foundry/bin:$PATH"
 foundryup
 
 # === 5. Install Bun ===
 curl -fsSL https://bun.sh/install | bash
+export PATH="$HOME/.bun/bin:$PATH"
 source ~/.bashrc
 
 # === 6. Clean Old Directories ===
