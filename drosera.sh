@@ -20,8 +20,6 @@ print_banner() {
 }
 clear
 print_banner
-# === Banner End ===
-
 echo "🚀 Drosera Full Auto Install (SystemD Only)"
 
 # === 1. User Inputs ===
@@ -40,24 +38,24 @@ done
 
 # === 2. Install Dependencies ===
 sudo apt-get update && sudo apt-get upgrade -y
-sudo apt install curl ufw iptables unzip build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils -y
+sudo apt install -y curl ufw iptables build-essential git wget lz4 jq make gcc nano \
+automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev \
+tar clang bsdmainutils unzip
 
 # === 3. Install Drosera CLI ===
 curl -L https://app.drosera.io/install | bash
-export PATH="$HOME/.drosera/bin:$PATH"
-source ~/.bashrc
-droseraup
+source ~/.bashrc || source ~/.profile
+command -v drosera >/dev/null || echo "❌ drosera CLI not found in PATH!"
 
 # === 4. Install Foundry ===
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
-export PATH="$HOME/.foundry/bin:$PATH"
 foundryup
 
 # === 5. Install Bun ===
 curl -fsSL https://bun.sh/install | bash
-export PATH="$HOME/.bun/bin:$PATH"
 source ~/.bashrc
+export PATH="$HOME/.bun/bin:$PATH"
 
 # === 6. Clean Old Directories ===
 rm -rf drosera_operator .drosera my_drosera_trap
@@ -66,7 +64,9 @@ rm -rf drosera_operator .drosera my_drosera_trap
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GHEMAIL"
 git config --global user.name "$GHUSER"
-forge init -t drosera-network/trap-foundry-template                                                                                                                              bun install && forge build
+forge init . --template drosera-network/trap-foundry-template
+bun install
+forge build
 
 # === 8. Deploy Trap ===
 echo "🚀 Deploying trap to Holesky..."
@@ -91,7 +91,8 @@ echo -e 'private_trap = true\nwhitelist = ["'"$OP_ADDR"'"]' >> drosera.toml
 # === 10. Wait & Reapply ===
 echo "⏳ Waiting 10 minutes before re-applying config with whitelist..."
 sleep 600
-DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"                                                                                                                
+DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"
+
 # === 11. Download Operator Binary ===
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
@@ -106,7 +107,7 @@ echo "🛠️ Setting up systemd service..."
 USER=$(whoami)
 sudo tee /etc/systemd/system/drosera.service > /dev/null <<EOF
 [Unit]
-Description=drosera node service
+Description=Drosera Node Service
 After=network-online.target
 
 [Service]
