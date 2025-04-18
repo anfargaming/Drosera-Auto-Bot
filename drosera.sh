@@ -20,9 +20,11 @@ print_banner() {
 }
 clear
 print_banner
+# === Banner End ===
+
+echo "🚀 Drosera Full Auto Install (SystemD Only)"
 
 # === 1. User Inputs ===
-echo "\n🚀 Drosera Full Auto Install (SystemD Only)"
 read -p "📧 GitHub email: " GHEMAIL
 read -p "👤 GitHub username: " GHUSER
 read -p "🔐 Drosera private key (0x...): " PK
@@ -34,15 +36,6 @@ for var in GHEMAIL GHUSER PK VPSIP OP_ADDR; do
     echo "❌ $var is required."
     exit 1
   fi
-  if [[ "$var" == *PK || "$var" == *OP_ADDR ]] && [[ ! ${!var} =~ ^0x[a-fA-F0-9]{64}$ ]]; then
-    echo "❌ $var must be a valid 0x-prefixed private key or address."
-    exit 1
-  fi
-  if [[ "$var" == *VPSIP ]] && [[ ! ${!var} =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "❌ VPSIP must be a valid IP address."
-    exit 1
-  fi
-  sleep 0.2
 done
 
 # === 2. Install Dependencies ===
@@ -70,11 +63,10 @@ rm -rf drosera_operator .drosera my_drosera_trap
 mkdir -p ~/my-drosera-trap && cd ~/my-drosera-trap
 git config --global user.email "$GHEMAIL"
 git config --global user.name "$GHUSER"
-forge init -t drosera-network/trap-foundry-template
-bun install && forge build
+forge init -t drosera-network/trap-foundry-template                                                                                                                              bun install && forge build
 
 # === 8. Deploy Trap ===
-echo "\n🚀 Deploying trap to Holesky..."
+echo "🚀 Deploying trap to Holesky..."
 LOG_FILE="/tmp/drosera_deploy.log"
 DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"
 
@@ -89,14 +81,14 @@ fi
 echo "🪤 Trap deployed at: $TRAP_ADDR"
 
 # === 9. Whitelist Operator ===
-echo "\n🔐 Updating drosera.toml with whitelist..."
-echo -e "\nprivate_trap = true\nwhitelist = [\"$OP_ADDR\"]" >> drosera.toml
+echo "🔐 Updating drosera.toml with whitelist..."
+sed -i '/^whitelist/d' drosera.toml
+echo -e 'private_trap = true\nwhitelist = ["'"$OP_ADDR"'"]' >> drosera.toml
 
 # === 10. Wait & Reapply ===
 echo "⏳ Waiting 10 minutes before re-applying config with whitelist..."
 sleep 600
-DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"
-
+DROSERA_PRIVATE_KEY=$PK drosera apply <<< "ofc" | tee "$LOG_FILE"                                                                                                                
 # === 11. Download Operator Binary ===
 cd ~
 curl -LO https://github.com/drosera-network/releases/releases/download/v1.16.2/drosera-operator-v1.16.2-x86_64-unknown-linux-gnu.tar.gz
@@ -106,15 +98,8 @@ sudo cp drosera-operator /usr/bin && chmod +x /usr/bin/drosera-operator
 # === 12. Register Operator ===
 drosera-operator register --eth-rpc-url https://holesky.drpc.org --eth-private-key $PK
 
-# === 13. Enable Firewall ===
-sudo ufw allow ssh
-sudo ufw allow 22
-sudo ufw allow 31313/tcp
-sudo ufw allow 31314/tcp
-sudo ufw --force enable
-
-# === 14. Setup SystemD ===
-echo "\n🛠️ Setting up systemd service..."
+# === 13. Setup SystemD ===
+echo "🛠️ Setting up systemd service..."
 USER=$(whoami)
 sudo tee /etc/systemd/system/drosera.service > /dev/null <<EOF
 [Unit]
@@ -129,7 +114,7 @@ LimitNOFILE=65535
 ExecStart=/usr/bin/drosera-operator node --db-file-path /home/$USER/.drosera.db --network-p2p-port 31313 --server-port 31314 \\
   --eth-rpc-url https://holesky.drpc.org \\
   --eth-backup-rpc-url https://1rpc.io/holesky \\
-  --drosera-address $TRAP_ADDR \\
+  --drosera-address 0xea08f7d533C2b9A62F40D5326214f39a8E3A32F8 \\
   --eth-private-key $PK \\
   --listen-address 0.0.0.0 \\
   --network-external-p2p-address $VPSIP \\
@@ -139,24 +124,25 @@ ExecStart=/usr/bin/drosera-operator node --db-file-path /home/$USER/.drosera.db 
 WantedBy=multi-user.target
 EOF
 
-# === 15. Start Service ===
+# === 14. Start Service ===
 sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-# === 16. Bloom Boost ===
-echo "\n⚡ Sending Bloom Boost to trap: $TRAP_ADDR"
+# === 15. Bloom Boost ===
+echo "⚡ Sending Bloom Boost to trap: $TRAP_ADDR"
 DROSERA_PRIVATE_KEY=$PK drosera bloomboost --trap-address $TRAP_ADDR --eth-amount 0.01
 
-# === 17. Opt-in ===
-echo "\n🔗 Opting in operator to trap..."
+# === 16. Opt-in ===
+echo "🔗 Opting in operator to trap..."
 drosera-operator optin --eth-rpc-url https://ethereum-holesky-rpc.publicnode.com --eth-private-key $PK --trap-config-address $TRAP_ADDR
 
-# === 18. Dryrun ===
+# === 17. Dryrun ===
 cd ~/my-drosera-trap
 drosera dryrun
 
-# === 19. Done ===
-echo "\n✅ Setup complete."
+# === 18. Done ===
+echo ""
+echo "✅ Setup complete."
 echo "🪤 Trap: https://app.drosera.io/trap?trapId=$(echo $TRAP_ADDR | tr '[:upper:]' '[:lower:]')"
 echo "📖 Logs: journalctl -u drosera -f"
