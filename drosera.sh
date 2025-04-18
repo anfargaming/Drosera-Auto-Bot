@@ -44,12 +44,10 @@ sudo apt install curl ufw iptables build-essential git wget lz4 jq make gcc nano
 
 # === 3. Install Drosera CLI ===
 curl -L https://app.drosera.io/install | bash
-echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 droseraup
 
 # === 4. Install Foundry ===
-sudo apt install unzip -y
 curl -L https://foundry.paradigm.xyz | bash
 source ~/.bashrc
 foundryup
